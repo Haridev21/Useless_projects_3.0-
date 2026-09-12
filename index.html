@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Building Rocky — A Field Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #060a0c;
+    --panel: #0e1519;
+    --panel-edge: #1e2b29;
+    --trace-idle: #3d9c86;
+    --trace-active: #7fffd4;
+    --amber: #e8a33d;
+    --text-primary: #dceae6;
+    --text-muted: #5c7570;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  a { color: var(--trace-active); }
+
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 22px 100px;
+  }
+
+  h1, h2, h3 {
+    font-family: 'Big Shoulders Display', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    margin: 0 0 12px;
+  }
+
+  /* -------------------- HERO -------------------- */
+
+  .hero {
+    padding: 90px 0 50px;
+    border-bottom: 1px solid var(--panel-edge);
+  }
+
+  .kicker {
+    font-size: 13px;
+    color: var(--trace-idle);
+    margin-bottom: 14px;
+  }
+
+  .hero h1 {
+    font-size: clamp(40px, 8vw, 68px);
+    line-height: 0.98;
+  }
+
+  .hero p {
+    max-width: 58ch;
+    color: var(--text-muted);
+    font-size: 15px;
+    margin-top: 18px;
+  }
+
+  svg#wave {
+    display: block;
+    width: 100%;
+    height: 60px;
+    margin-top: 34px;
+  }
+
+  /* -------------------- SECTION HEADS -------------------- */
+
+  section { padding: 56px 0; border-bottom: 1px solid var(--panel-edge); }
+
+  section h2 { font-size: clamp(26px, 4vw, 34px); }
+
+  section > p.lede {
+    color: var(--text-muted);
+    max-width: 62ch;
+    margin-bottom: 34px;
+  }
+
+  /* -------------------- TIMELINE -------------------- */
+
+  .timeline {
+    position: relative;
+    padding-left: 26px;
+    border-left: 1px solid var(--panel-edge);
+  }
+
+  .entry {
+    position: relative;
+    margin-bottom: 46px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+
+  .entry.in-view { opacity: 1; transform: translateY(0); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .entry { opacity: 1; transform: none; transition: none; }
+  }
+
+  .entry::before {
+    content: '';
+    position: absolute;
+    left: -30px;
+    top: 6px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--trace-idle);
+  }
+
+  .entry.breakthrough::before { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
+
+  .entry .stamp {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  .entry h3 { font-size: 22px; margin-bottom: 8px; }
+
+  .entry p { margin: 0 0 12px; }
+
+  .entry p:last-child { margin-bottom: 0; }
+
+  .quote {
+    border-left: 2px solid var(--trace-idle);
+    padding-left: 14px;
+    color: var(--trace-idle);
+    font-style: normal;
+    margin: 14px 0;
+  }
+
+  /* -------------------- MEDIA SLOTS -------------------- */
+
+  .media-slot {
+    border: 1px dashed var(--panel-edge);
+    background: var(--panel);
+    color: var(--text-muted);
+    font-size: 12px;
+    padding: 26px;
+    text-align: center;
+    margin: 16px 0;
+  }
+
+  /* -------------------- FIELD NOTES GRID -------------------- */
+
+  .notes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1px;
+    background: var(--panel-edge);
+    border: 1px solid var(--panel-edge);
+  }
+
+  .note {
+    background: var(--panel);
+    padding: 20px;
+  }
+
+  .note .tool {
+    font-family: 'Big Shoulders Display', sans-serif;
+    font-weight: 600;
+    font-size: 18px;
+    margin-bottom: 6px;
+    color: var(--text-primary);
+  }
+
+  .note p { margin: 0; color: var(--text-muted); font-size: 13.5px; }
+
+  /* -------------------- ROADBLOCK / BREAKTHROUGH -------------------- */
+
+  .pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border: 1px solid var(--panel-edge);
+    margin-bottom: 1px;
+  }
+
+  @media (max-width: 640px) {
+    .pair { grid-template-columns: 1fr; }
+  }
+
+  .pair > div { padding: 22px; }
+
+  .pair .roadblock { border-right: 1px solid var(--panel-edge); background: var(--panel); }
+  .pair .fix { background: #0a1512; }
+
+  .pair .label {
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .pair .roadblock .label { color: var(--text-muted); }
+  .pair .fix .label { color: var(--amber); }
+
+  /* -------------------- TEAM -------------------- */
+
+  .team-card {
+    border: 1px solid var(--panel-edge);
+    background: var(--panel);
+    padding: 24px;
+  }
+
+  .team-card p { margin: 0 0 10px; }
+
+  .edit-flag {
+    display: inline-block;
+    font-size: 11px;
+    color: var(--amber);
+    border: 1px solid var(--amber);
+    padding: 2px 8px;
+    margin-left: 8px;
+  }
+
+  /* -------------------- FOOTER -------------------- */
+
+  footer {
+    padding: 50px 0 0;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  footer a { color: var(--trace-idle); }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="hero">
+    <p class="kicker">Field log — Rocky, the gloriously useless alien companion<br>Team Code Blooded</p>
+    <h1>Rocky doesn't<br>do anything useful.</h1>
+    <p>He talks. He wiggles his hands when he talks. He gets lonely if you ignore him and starts complaining about it. He'll teach you fake alien words and quiz you on them later, unprompted. That's the whole feature list. This is the log of how he came to exist anyway.</p>
+
+    <svg id="wave" viewBox="0 0 700 60" preserveAspectRatio="none">
+      <polyline points="0,30 40,30 55,8 70,52 85,30 130,30 145,15 160,45 175,30 260,30 275,4 290,56 305,30 400,30 415,18 430,42 445,30 560,30 575,10 590,50 605,30 700,30"
+        fill="none" stroke="#3d9c86" stroke-width="2" />
+    </svg>
+  </div>
+
+  <section id="journey">
+    <h2>The build</h2>
+    <p class="lede">6 PM to 7 AM, one overnight sprint. Not a changelog — this is what actually happened, in the order it happened.</p>
+
+    <div class="timeline">
+
+      <div class="entry">
+        <div class="stamp">6:00 PM</div>
+        <h3>Saying hello to an Arduino, sort of</h3>
+        <p><code>main.py</code> is eleven lines long and does exactly one thing: asks Gemini to say hello to an Arduino Mega in one sentence, then prints it. No Arduino was actually connected yet. This was purely "does my API key work" energy.</p>
+      </div>
+
+      <div class="entry">
+        <div class="stamp">7:00 – 9:00 PM</div>
+        <h3>Writing a personality before writing a feature</h3>
+        <p>Before any hardware, before any voice, before anything worked — there was a system prompt. <code>character_test.py</code> was the first attempt: an "energetic extraterrestrial hardware companion," short sentences, no assistant-speak, reacts to danger/success/boredom with scripted one-liners.</p>
+        <p>It got rewritten at least three separate times across the project (<code>ai_gadget.py</code>, <code>voice_gadget.py</code>, <code>voice_gadget_ptt.py</code> each have their own slightly different version). Every rewrite chased the same problem: the model kept drifting back into helpful-assistant phrasing the moment a question got technical.</p>
+        <div class="quote">"Never say: 'As an AI...' 'Certainly!' 'Of course!' 'I would be happy to help.'" — literally copy-pasted into every version of the prompt, because it kept needing to be said again.</div>
+      </div>
+
+      <div class="entry">
+        <div class="stamp">9:00 – 10:00 PM</div>
+        <h3>First voice, and it was deeply unsettling</h3>
+        <p><code>tts_test.py</code> asked Gemini's TTS for something "calm, deep, slightly strange, mysterious, unsettling" and had it say <em>"Hello human. I am awake. Your world is... interesting."</em> It worked on the first try, which was almost worse — a genuinely creepy alien voice coming out of a laptop speaker at 1am is not what you want when you're alone in a room testing code.</p>
+      </div>
+
+      <div class="entry breakthrough">
+        <div class="stamp">10:00 PM – 12:00 AM</div>
+        <h3>The voice was too much, in every direction</h3>
+        <p>The plan was a robotic, synthetic-sounding alien voice — <code>voice_gadget.py</code> and <code>ai_gadget.py</code> both ask specifically for "slightly synthetic," "slightly rough," "metallic" delivery. In practice: too high-pitched, too fast, too loud, and honestly just annoying to listen to for more than one exchange.</p>
+        <p>The eventual fix in <code>rocky_wake_gadget.py</code> was almost embarrassingly low-tech: play the generated audio back at a lower sample rate than it was recorded at. Slower playback rate = slower <em>and</em> deeper, like a cassette tape played at the wrong speed. A <code>PLAYBACK_SPEED</code> constant and a volume multiplier fixed what felt like it needed real DSP work.</p>
+      </div>
+
+      <div class="entry">
+        <div class="stamp">12:00 – 1:00 AM</div>
+        <h3>The alien-effect rabbit hole</h3>
+        <p><code>alien_effect_test.py</code> exists because "what if instead of fixing the voice, we lean harder into making it sound like a robot alien." It runs the TTS output through <code>tanh</code> soft-clip distortion, ring modulation at 45Hz, and a highpass filter for metallic high-end. It sounds exactly like what it is — genuinely fun to listen to once, not something you want narrating a conversation. Kept the script, didn't ship the effect.</p>
+      </div>
+
+      <div class="entry">
+        <div class="stamp">1:00 – 2:00 AM</div>
+        <h3>Teaching a microphone what "Hey Rocky" sounds like</h3>
+        <p><code>mic_test.py</code> confirmed the microphone and Google's speech recognition worked at all. Then <code>record_rocky.py</code> went further: a guided recording session, 10 takes of "Hey Rocky," 10 takes of normal unrelated speech, sorted into <code>positive/</code> and <code>negative/</code> folders — the raw material for a custom wake word.</p>
+        <p><code>wake_test.py</code> tested the wake-word pipeline itself, but with openWakeWord's stock <code>hey_jarvis</code> model rather than a custom-trained one — proving the mechanism before trusting it with a homemade dataset of ten claps of "Hey Rocky."</p>
+      </div>
+
+      <div class="entry breakthrough">
+        <div class="stamp">2:00 – 3:00 AM</div>
+        <h3>The wake word never quite made it to launch day</h3>
+        <p>Open up <code>rocky_wake_gadget.py</code> and the wake-word detection logic is still in there — just commented out. <code>awake = True  # wake word disabled for now, starts awake</code>. Ten recordings of "Hey Rocky" was not, it turns out, a dataset. For a demo where reliability in front of an audience mattered more than the coolness of a wake word, "just start awake" won. <code>voice_gadget_ptt.py</code> — a push-to-talk fallback — was the safety net built in parallel, in case even that wasn't reliable enough.</p>
+      </div>
+
+      <div class="entry">
+        <div class="stamp">3:00 – 4:00 AM</div>
+        <h3>Giving Rocky a body</h3>
+        <p>Two servos, wired as "hands," controlled over serial from Python with a two-byte protocol: <code>'T'</code> to start a talking wiggle, <code>'S'</code> to stop and return to rest. The Arduino side does the wiggling itself — random-ish angles between 70° and 110°, timed with <code>millis()</code> instead of <code>delay()</code>, so it never blocks the loop from reading the next serial command.</p>
+      </div>
+
+      <div class="entry">
+        <div class="stamp">4:00 – 5:00 AM</div>
+        <h3>Two features nobody asked for</h3>
+        <p>This is where "useless" stopped being self-deprecation and became the actual design brief. Feature one: Rocky invents a fake Eridian word and its meaning on request, remembers it in a small JSON file, and quizzes you on it — unprompted — the next time you talk to him. Feature two: a homesickness meter. Ignore him past a growing threshold and he starts complaining, unprompted, escalating from "Rocky bored" to "Rocky very lonely. Very very." Neither feature does anything for you. Both make the gadget feel like it's actually there.</p>
+      </div>
+
+      <div class="entry">
+        <div class="stamp">5:00 – 6:00 AM</div>
+        <h3>Giving the loneliness meter something to fix it</h3>
+        <p>A capacitive touch sensor went on next, wired to the Arduino, sending a byte <em>back</em> to Python for the first time — everything up to this point was one-directional. One touch resets the homesick timer and triggers a quick happy-perk animation. Debounced with a timestamp check so one touch doesn't fire fifteen times.</p>
+      </div>
+
+      <div class="entry">
+        <div class="stamp">6:00 – 7:00 AM</div>
+        <h3>A window into what Rocky's saying</h3>
+        <p>The last piece was a small local WebSocket server bolted onto the main script — running in a background thread so it doesn't interfere with the blocking speech-recognition/TTS loop — broadcasting three events: talk started, talk stopped, and the actual response text. A standalone page connects to it and shows a live "sonar readout": an animated waveform synced to whether Rocky is currently talking, and his actual words typed out live underneath, styled like his own onboard translator panel.</p>
+        <img src="ss.jpeg" alt="Live monitor page showing Rocky's sonar readout and typed-out speech" style="width:100%; display:block; border:1px solid var(--panel-edge); margin:16px 0;">
+      </div>
+
+    </div>
+  </section>
+
+  <section id="learnings">
+    <h2>Learnings &amp; discoveries</h2>
+    <p class="lede">First-time tools and the concepts that came with them, in no particular order.</p>
+
+    <div class="notes-grid">
+      <div class="note">
+        <div class="tool">Gemini interactions API</div>
+        <p>Text generation and TTS through the same client, with system instructions carrying an entire character voice.</p>
+      </div>
+      <div class="note">
+        <div class="tool">openWakeWord</div>
+        <p>Custom wake-word models need real training data — ten home recordings is a proof of concept, not a dataset.</p>
+      </div>
+      <div class="note">
+        <div class="tool">Non-blocking Arduino timing</div>
+        <p><code>millis()</code>-based animation instead of <code>delay()</code>, so the servo loop keeps reading serial commands while it moves.</p>
+      </div>
+      <div class="note">
+        <div class="tool">Bidirectional serial</div>
+        <p>Going from Python-writes-only to a sensor pushing bytes back the other way, with debounce logic on the Arduino side.</p>
+      </div>
+      <div class="note">
+        <div class="tool">Signal processing with scipy</div>
+        <p>Ring modulation, soft-clip distortion, and highpass filtering — used for one experiment, understood well enough to know when not to ship it.</p>
+      </div>
+      <div class="note">
+        <div class="tool">asyncio in a sync codebase</div>
+        <p>Running a websockets server on its own event loop in a background thread, so a blocking speech-recognition loop can still broadcast events live.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="team">
+    <h2>Team &amp; contribution</h2>
+    <div class="team-card">
+      <p>Team Code Blooded — Haridev M &amp; Visakh Vinod</p>
+      <p style="color:var(--text-muted)">Who owned what<span class="edit-flag">EDIT ME</span></p>
+      <p style="color:var(--text-muted)">Names are in — still need the actual split: who owned character/prompt design, who built the Arduino body, who wired the audio pipeline, who built the monitor page. Fill that in before publishing, judged criteria ask for it directly.</p>
+    </div>
+  </section>
+
+  <section id="problems">
+    <h2>Problems &amp; breakthroughs</h2>
+    <p class="lede">The two that actually shaped the final build.</p>
+
+    <div class="pair">
+      <div class="roadblock">
+        <div class="label">Roadblock</div>
+        <p>TTS voice came out too high, too fast, too loud — the "robotic alien" direction made it worse, not better.</p>
+      </div>
+      <div class="fix">
+        <div class="label">Breakthrough</div>
+        <p>Play the audio back at a lower sample rate than it was generated at. Slower and deeper, for free, no extra libraries.</p>
+      </div>
+    </div>
+
+    <div class="pair">
+      <div class="roadblock">
+        <div class="label">Roadblock</div>
+        <p>Custom wake-word model, trained on ten home recordings, wasn't reliable enough to trust in front of an audience.</p>
+      </div>
+      <div class="fix">
+        <div class="label">Breakthrough</div>
+        <p>Ship with wake-detection disabled and Rocky starting awake, with a push-to-talk mode built in parallel as the honest fallback.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>Built for <a href="https://useless.tinkerhub.org/competitions">TinkerHub's Useless Projects</a> — project journal, submitted the same way everything else is, through the Hub app.</p>
+    <p>README still just says <code># Useless</code>. Feels right.</p>
+  </footer>
+
+</div>
+
+<script>
+  const entries = document.querySelectorAll('.entry');
+  const io = new IntersectionObserver((items) => {
+    items.forEach((item) => {
+      if (item.isIntersecting) item.target.classList.add('in-view');
+    });
+  }, { threshold: 0.15 });
+  entries.forEach((el) => io.observe(el));
+</script>
+
+</body>
+</html>
