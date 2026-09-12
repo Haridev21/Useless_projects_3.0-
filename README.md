@@ -101,8 +101,8 @@ For Hardware:
 [Add any extra demo materials/links]
 
 ## Team Contributions
-- Haridev M: [Specific contributions]
-- Visakh Vinod: [Specific contributions]
+- Haridev M: Character design & Gemini integration — wrote Rocky's personality/system prompt, wired up the speech-to-text and TTS pipeline, built the alien-word and homesick-meter features
+- Visakh Vinod: Hardware & live monitor — Arduino wiring (servos + touch sensor), serial communication between Python and Arduino, built the WebSocket-powered live monitor page
 
 ---
 Made with ❤️ at TinkerHub Useless Projects 
