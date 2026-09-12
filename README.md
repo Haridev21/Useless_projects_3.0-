@@ -71,7 +71,7 @@ For Software:
 
 # Diagrams
 ![Workflow](Add your workflow/architecture diagram here)
-*Mic → Google STT → Gemini (character response) → Gemini TTS → speaker + Arduino hand-wiggle + WebSocket broadcast to the monitor page*
+
 
 For Hardware:
 
