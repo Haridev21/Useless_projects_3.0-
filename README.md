@@ -94,7 +94,7 @@ For Hardware:
 
 ### Project Demo
 # Video
-[Add your demo video link here]
+[Demo video](https://drive.google.com/drive/folders/1owcUrfU2FjZ_c8C0ZEyLo-EpDdOVbPel?usp=sharing)
 *Shows Rocky waking up, holding a conversation, wiggling his hands while talking, teaching an alien word, and getting lonely when ignored*
 
 # Additional Demos
