@@ -76,7 +76,7 @@ For Software:
 For Hardware:
 
 # Schematic & Circuit
-![Circuit](Add your circuit diagram here)
+![Circuit](digram.png)
 *Two servos on Arduino Mega pins 9 and 10, touch sensor on pin 7, Arduino connected to the laptop over USB serial*
 
 ![Schematic](Add your schematic diagram here)
