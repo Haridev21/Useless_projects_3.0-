@@ -83,13 +83,13 @@ For Hardware:
 *Add caption explaining the schematic*
 
 # Build Photos
-![Components](Add photo of your components here)
-*Arduino Mega, 2x servo motors, capacitive touch sensor, USB cable, microphone*
+![Components](mega.jpeg)
+*Arduino Mega — the board everything else (servos, touch sensor) connects to*
 
-![Build](Add photos of build process here)
+![Build](rockey2.jpeg)
 *Wiring the servos and touch sensor, testing serial communication, tuning the wiggle and droop animations*
 
-![Final](Add photo of final product here)
+![Final](rockey3.jpeg)
 *Rocky fully wired up and talking*
 
 ### Project Demo
